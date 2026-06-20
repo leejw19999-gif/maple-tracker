@@ -149,20 +149,32 @@ allNicks.forEach((nick, i) => {
                 backgroundColor: colors[i % colors.length] + '22',
                 tension: 0.3, fill: true, pointRadius: 4,
             }, {
-                label: '헥사환산(380)',
-                data: d.hexa_equiv_380,
-                borderColor: '#a78bfa',
-                backgroundColor: '#a78bfa22',
+                label: '레벨(경험치%)',
+                data: d.level,
+                borderColor: '#2ecc71',
+                backgroundColor: '#2ecc7122',
                 tension: 0.3, fill: false, pointRadius: 4,
                 borderDash: [4,4],
+                yAxisID: 'y2',
             }]
         },
         options: {
             responsive: true,
-            plugins: { legend: { labels: { color: '#8892a4' } } },
+            plugins: {
+                legend: { labels: { color: '#8892a4' } },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => {
+                            if (ctx.dataset.label.includes('레벨')) return `레벨: ${ctx.raw} (${d.exp_pct[ctx.dataIndex]}%)`;
+                            return `${ctx.dataset.label}: ${ctx.raw?.toLocaleString()}`;
+                        }
+                    }
+                }
+            },
             scales: {
                 x: { ticks: { color: '#8892a4', maxTicksLimit: 10 }, grid: { color: '#252a3a' } },
-                y: { ticks: { color: '#8892a4' }, grid: { color: '#252a3a' } }
+                y: { ticks: { color: '#8892a4' }, grid: { color: '#252a3a' }, title: { display: true, text: '헥사환산(380)', color: '#8892a4' } },
+                y2: { position: 'right', ticks: { color: '#2ecc71' }, grid: { drawOnChartArea: false }, title: { display: true, text: '레벨', color: '#2ecc71' } }
             }
         }
     });
