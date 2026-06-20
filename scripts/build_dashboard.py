@@ -32,11 +32,11 @@ for r in rows:
 dates = sorted(by_date.keys(), reverse=True)
 all_nicks = sorted(set(r['nick'] for r in rows))
 
-# 차트 데이터
 chart_data = {}
 for nick in all_nicks:
     chart_data[nick] = {
         'labels': [],
+        'stat_equiv_380': [],
         'hexa_equiv_380': [],
         'level': [],
         'exp_pct': [],
@@ -46,11 +46,11 @@ for r in rows:
     label = dt.strftime('%m/%d %H:%M')
     nick = r['nick']
     chart_data[nick]['labels'].append(label)
+    chart_data[nick]['stat_equiv_380'].append(r.get('stat_equiv_380'))
     chart_data[nick]['hexa_equiv_380'].append(r.get('hexa_equiv_380'))
     chart_data[nick]['level'].append(r.get('level'))
     chart_data[nick]['exp_pct'].append(r.get('exp_pct'))
 
-# 날짜 탭
 tab_btns = ''
 tab_contents = ''
 for di, date in enumerate(dates):
@@ -106,7 +106,6 @@ for di, date in enumerate(dates):
     show = '' if di == 0 else 'style="display:none"'
     tab_contents += f'<div class="tab-content" id="tab-{date}" {show}><div class="cards">{cards}</div></div>'
 
-# 전체 기록 테이블
 table_rows = ''
 for r in reversed(rows):
     dt = datetime.fromisoformat(r['collected_at']).astimezone(KST).strftime('%Y-%m-%d %H:%M')
@@ -119,40 +118,66 @@ for r in reversed(rows):
         <td class="pu">{r.get("hexa_equiv_380") or "-"}</td>
     </tr>'''
 
-# 차트
 charts_html = ''
 colors = ['#ff6b2b','#4a9eff','#2ecc71','#a78bfa','#ffb347','#e74c3c']
 for i, nick in enumerate(all_nicks):
     c = colors[i % len(colors)]
     charts_html += f'<div class="chart-wrap"><div class="chart-title" style="color:{c}">🍁 {nick}</div><canvas id="chart-{i}"></canvas></div>'
 
+level_charts_html = ''
+for i, nick in enumerate(all_nicks):
+    c = colors[i % len(colors)]
+    level_charts_html += f'<div class="chart-wrap"><div class="chart-title" style="color:{c}">🍁 {nick}</div><canvas id="lchart-{i}"></canvas></div>'
+
 chart_js = 'const chartData = ' + json.dumps(chart_data, ensure_ascii=False) + ';\n'
 chart_js += 'const allNicks = ' + json.dumps(all_nicks, ensure_ascii=False) + ';\n'
 chart_js += f'const colors = {json.dumps(colors)};\n'
 chart_js += '''
 allNicks.forEach((nick, i) => {
-    const ctx = document.getElementById("chart-"+i);
-    if (!ctx) return;
     const d = chartData[nick];
-    new Chart(ctx, {
+
+    // 환산 그래프
+    new Chart(document.getElementById("chart-"+i), {
         type: 'line',
         data: {
             labels: d.labels,
             datasets: [{
-                label: '헥사환산(380)',
-                data: d.hexa_equiv_380,
+                label: '환산(380)',
+                data: d.stat_equiv_380,
                 borderColor: colors[i % colors.length],
                 backgroundColor: colors[i % colors.length] + '22',
                 tension: 0.3, fill: true, pointRadius: 4,
-                yAxisID: 'y',
             }, {
-                label: '레벨(경험치%)',
-                data: d.level,
-                borderColor: '#2ecc71',
-                backgroundColor: '#2ecc7122',
+                label: '헥사환산(380)',
+                data: d.hexa_equiv_380,
+                borderColor: '#a78bfa',
+                backgroundColor: '#a78bfa22',
                 tension: 0.3, fill: false, pointRadius: 4,
-                borderDash: [5, 5],
-                yAxisID: 'y2',
+                borderDash: [4,4],
+            }]
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: { legend: { labels: { color: '#8892a4' } } },
+            scales: {
+                x: { ticks: { color: '#8892a4', maxTicksLimit: 10 }, grid: { color: '#252a3a' } },
+                y: { ticks: { color: '#8892a4' }, grid: { color: '#252a3a' } }
+            }
+        }
+    });
+
+    // 레벨 그래프
+    new Chart(document.getElementById("lchart-"+i), {
+        type: 'line',
+        data: {
+            labels: d.labels,
+            datasets: [{
+                label: '레벨',
+                data: d.level,
+                borderColor: colors[i % colors.length],
+                backgroundColor: colors[i % colors.length] + '22',
+                tension: 0.3, fill: true, pointRadius: 4,
             }]
         },
         options: {
@@ -163,32 +188,26 @@ allNicks.forEach((nick, i) => {
                 tooltip: {
                     callbacks: {
                         label: (ctx) => {
-                            if (ctx.dataset.label.includes('레벨')) {
-                                const exp = d.exp_pct[ctx.dataIndex];
-                                return `레벨: ${ctx.raw} (${exp}%)`;
-                            }
-                            return `${ctx.dataset.label}: ${ctx.raw?.toLocaleString()}`;
+                            const exp = d.exp_pct[ctx.dataIndex];
+                            return `레벨: ${ctx.raw} (${exp}%)`;
                         }
                     }
                 }
             },
             scales: {
                 x: { ticks: { color: '#8892a4', maxTicksLimit: 10 }, grid: { color: '#252a3a' } },
-                y: {
-                    ticks: { color: '#8892a4' },
-                    grid: { color: '#252a3a' },
-                    title: { display: true, text: '헥사환산(380)', color: '#8892a4' }
-                },
-                y2: {
-                    position: 'right',
-                    ticks: { color: '#2ecc71' },
-                    grid: { drawOnChartArea: false },
-                    title: { display: true, text: '레벨', color: '#2ecc71' }
-                }
+                y: { ticks: { color: '#2ecc71' }, grid: { color: '#252a3a' } }
             }
         }
     });
 });
+
+function toggleChart(mode) {
+    document.getElementById('chart-section').style.display = mode === 'stat' ? 'block' : 'none';
+    document.getElementById('level-section').style.display = mode === 'level' ? 'block' : 'none';
+    document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + mode).classList.add('active');
+}
 '''
 
 updated = datetime.now(KST).strftime('%Y-%m-%d %H:%M')
@@ -227,6 +246,9 @@ html = f'''<!DOCTYPE html>
   .delta.up{{background:#2ecc7122;color:#2ecc71}}
   .delta.down{{background:#e74c3c22;color:#e74c3c}}
   .fetched{{font-size:11px;color:#555;margin-top:10px}}
+  .toggle-bar{{display:flex;gap:0;margin-bottom:16px;background:#151820;border:1px solid #252a3a;border-radius:8px;overflow:hidden;width:fit-content}}
+  .toggle-btn{{padding:8px 20px;border:none;background:transparent;color:#8892a4;cursor:pointer;font-size:13px;font-family:"Noto Sans KR",sans-serif;transition:all .15s}}
+  .toggle-btn.active{{background:#ff6b2b;color:#fff}}
   .charts-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(500px,1fr));gap:20px}}
   .chart-wrap{{background:#151820;border:1px solid #252a3a;border-radius:10px;padding:16px}}
   .chart-title{{font-size:13px;font-weight:700;margin-bottom:12px}}
@@ -249,8 +271,15 @@ html = f'''<!DOCTYPE html>
   <div class="section-title">📅 날짜별 현황</div>
   <div class="tab-bar">{tab_btns}</div>
   {tab_contents}
+
   <div class="section-title">📈 성장 그래프</div>
-  <div class="charts-grid">{charts_html}</div>
+  <div class="toggle-bar">
+    <button class="toggle-btn active" id="btn-stat" onclick="toggleChart('stat')">환산(380)</button>
+    <button class="toggle-btn" id="btn-level" onclick="toggleChart('level')">레벨 / 경험치</button>
+  </div>
+  <div id="chart-section" class="charts-grid">{charts_html}</div>
+  <div id="level-section" class="charts-grid" style="display:none">{level_charts_html}</div>
+
   <div class="section-title">📋 전체 기록</div>
   <div class="table-wrap">
   <table>
