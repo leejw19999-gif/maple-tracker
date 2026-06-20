@@ -203,8 +203,22 @@ allNicks.forEach((nick, i) => {
                     }
                 },
                 scales: {
-                    x: { ticks: { color: '#8892a4', maxTicksLimit: 10 }, grid: { color: '#252a3a' } },
-                    y: { ticks: { color: '#2ecc71' }, grid: { color: '#252a3a' }, title: { display: true, text: '경험치%', color: '#2ecc71' } }
+                    x: {
+                        ticks: {
+                            color: '#8892a4',
+                            maxTicksLimit: 10,
+                            callback: function(val, idx) {
+                                const lv = d.level[idx];
+                                return [d.labels[idx], `Lv.${lv}`];
+                            }
+                        },
+                        grid: { color: '#252a3a' }
+                    },
+                    y: {
+                        ticks: { color: '#2ecc71', callback: (v) => v + '%' },
+                        grid: { color: '#252a3a' },
+                        title: { display: true, text: '경험치%', color: '#2ecc71' }
+                    }
                 }
             }
         });
