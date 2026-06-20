@@ -133,83 +133,97 @@ chart_js = 'const chartData = ' + json.dumps(chart_data, ensure_ascii=False) + '
 chart_js += 'const allNicks = ' + json.dumps(all_nicks, ensure_ascii=False) + ';\n'
 chart_js += f'const colors = {json.dumps(colors)};\n'
 chart_js += '''
+const chartInstances = [];
+
 allNicks.forEach((nick, i) => {
     const d = chartData[nick];
 
     // 환산 그래프
-    new Chart(document.getElementById("chart-"+i), {
-        type: 'line',
-        data: {
-            labels: d.labels,
-            datasets: [{
-                label: '환산(380)',
-                data: d.stat_equiv_380,
-                borderColor: colors[i % colors.length],
-                backgroundColor: colors[i % colors.length] + '22',
-                tension: 0.3, fill: true, pointRadius: 4,
-            }, {
-                label: '헥사환산(380)',
-                data: d.hexa_equiv_380,
-                borderColor: '#a78bfa',
-                backgroundColor: '#a78bfa22',
-                tension: 0.3, fill: false, pointRadius: 4,
-                borderDash: [4,4],
-            }]
-        },
-        options: {
-            responsive: true,
-            interaction: { mode: 'index', intersect: false },
-            plugins: { legend: { labels: { color: '#8892a4' } } },
-            scales: {
-                x: { ticks: { color: '#8892a4', maxTicksLimit: 10 }, grid: { color: '#252a3a' } },
-                y: { ticks: { color: '#8892a4' }, grid: { color: '#252a3a' } }
+    const ctx1 = document.getElementById("chart-"+i);
+    if (ctx1) {
+        const c1 = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: d.labels,
+                datasets: [{
+                    label: '환산(380)',
+                    data: d.stat_equiv_380,
+                    borderColor: colors[i % colors.length],
+                    backgroundColor: colors[i % colors.length] + '22',
+                    tension: 0.3, fill: true, pointRadius: 4,
+                }, {
+                    label: '헥사환산(380)',
+                    data: d.hexa_equiv_380,
+                    borderColor: '#a78bfa',
+                    backgroundColor: '#a78bfa22',
+                    tension: 0.3, fill: false, pointRadius: 4,
+                    borderDash: [4,4],
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { labels: { color: '#8892a4' } } },
+                scales: {
+                    x: { ticks: { color: '#8892a4', maxTicksLimit: 10 }, grid: { color: '#252a3a' } },
+                    y: { ticks: { color: '#8892a4' }, grid: { color: '#252a3a' } }
+                }
             }
-        }
-    });
+        });
+        chartInstances.push(c1);
+    }
 
     // 레벨 그래프
-    new Chart(document.getElementById("lchart-"+i), {
-        type: 'line',
-        data: {
-            labels: d.labels,
-            datasets: [{
-                label: '레벨',
-                data: d.level,
-                borderColor: colors[i % colors.length],
-                backgroundColor: colors[i % colors.length] + '22',
-                tension: 0.3, fill: true, pointRadius: 4,
-            }]
-        },
-        options: {
-            responsive: true,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: { labels: { color: '#8892a4' } },
-                tooltip: {
-                    callbacks: {
-                        label: (ctx) => {
-                            const exp = d.exp_pct[ctx.dataIndex];
-                            return `레벨: ${ctx.raw} (${exp}%)`;
+    const ctx2 = document.getElementById("lchart-"+i);
+    if (ctx2) {
+        const c2 = new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: d.labels,
+                datasets: [{
+                    label: '레벨',
+                    data: d.level,
+                    borderColor: colors[i % colors.length],
+                    backgroundColor: colors[i % colors.length] + '22',
+                    tension: 0.3, fill: true, pointRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { labels: { color: '#8892a4' } },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => {
+                                const exp = d.exp_pct[ctx.dataIndex];
+                                return `레벨: ${ctx.raw} (${exp}%)`;
+                            }
                         }
                     }
+                },
+                scales: {
+                    x: { ticks: { color: '#8892a4', maxTicksLimit: 10 }, grid: { color: '#252a3a' } },
+                    y: { ticks: { color: '#2ecc71' }, grid: { color: '#252a3a' } }
                 }
-            },
-            scales: {
-                x: { ticks: { color: '#8892a4', maxTicksLimit: 10 }, grid: { color: '#252a3a' } },
-                y: { ticks: { color: '#2ecc71' }, grid: { color: '#252a3a' } }
             }
-        }
-    });
+        });
+        chartInstances.push(c2);
+    }
 });
 
 function toggleChart(mode) {
-    document.getElementById('chart-section').style.display = mode === 'stat' ? 'block' : 'none';
-    document.getElementById('level-section').style.display = mode === 'level' ? 'block' : 'none';
+    document.getElementById('chart-section').style.display = mode === 'stat' ? 'grid' : 'none';
+    document.getElementById('level-section').style.display = mode === 'level' ? 'grid' : 'none';
     document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('btn-' + mode).classList.add('active');
+    
+    // 순간적으로 깨지는 차트 렌더링 리사이즈 유도
+    chartInstances.forEach(chart => chart.resize());
 }
 '''
-
 updated = datetime.now(KST).strftime('%Y-%m-%d %H:%M')
 
 html = f'''<!DOCTYPE html>
