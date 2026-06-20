@@ -48,7 +48,7 @@
 <header>
   <span style="font-size:22px">🍁</span>
   <h1>메이플 스펙 트래커</h1>
-  <span class="upd">업데이트: 2026-06-20 10:05 KST</span>
+  <span class="upd">업데이트: 2026-06-20 10:11 KST</span>
 </header>
 <div class="container">
   <div class="section-title">📅 날짜별 현황</div>
@@ -57,7 +57,7 @@
             <div class="card-title">🍁 보마공준</div>
             <div class="stat-row"><span class="lbl">레벨</span>
                 <span class="val"">Lv.270 </span>
-                <span class="exp">(44.089%)</span></div>
+                <span class="exp">(44.793%)</span></div>
             <div class="stat-row"><span class="lbl">전투력</span>
                 <span class="val hl">2356.2만</span>
                 </div>
@@ -67,7 +67,7 @@
             <div class="stat-row"><span class="lbl">헥사환산(380)</span>
                 <span class="val pu">17774</span>
                 </div>
-            <div class="fetched">🕐 10:04 KST</div>
+            <div class="fetched">🕐 10:11 KST</div>
         </div><div class="card">
             <div class="card-title">🍁 아잉담스매셔</div>
             <div class="stat-row"><span class="lbl">레벨</span>
@@ -82,12 +82,12 @@
             <div class="stat-row"><span class="lbl">헥사환산(380)</span>
                 <span class="val pu">2462</span>
                 </div>
-            <div class="fetched">🕐 10:04 KST</div>
+            <div class="fetched">🕐 10:11 KST</div>
         </div><div class="card">
             <div class="card-title">🍁 죄보의속삭임</div>
             <div class="stat-row"><span class="lbl">레벨</span>
                 <span class="val"">Lv.266 </span>
-                <span class="exp">(15.729%)</span></div>
+                <span class="exp">(17.102%)</span></div>
             <div class="stat-row"><span class="lbl">전투력</span>
                 <span class="val hl">2277.7만</span>
                 </div>
@@ -97,7 +97,7 @@
             <div class="stat-row"><span class="lbl">헥사환산(380)</span>
                 <span class="val pu">16090</span>
                 </div>
-            <div class="fetched">🕐 10:04 KST</div>
+            <div class="fetched">🕐 10:11 KST</div>
         </div><div class="card">
             <div class="card-title">🍁 캡띵2</div>
             <div class="stat-row"><span class="lbl">레벨</span>
@@ -112,7 +112,7 @@
             <div class="stat-row"><span class="lbl">헥사환산(380)</span>
                 <span class="val pu">18187</span>
                 </div>
-            <div class="fetched">🕐 10:04 KST</div>
+            <div class="fetched">🕐 10:11 KST</div>
         </div></div></div>
 
   <div class="section-title">📈 성장 그래프</div>
@@ -123,6 +123,34 @@
   <table>
     <thead><tr><th>수집시각 (KST)</th><th>닉네임</th><th>레벨</th><th>전투력</th><th>환산(380)</th><th>헥사환산(380)</th></tr></thead>
     <tbody><tr>
+        <td>2026-06-20 10:11</td>
+        <td class="nick">아잉담스매셔</td>
+        <td>Lv.262 (14.308%)</td>
+        <td class="hl">578.4만</td>
+        <td class="or">6026</td>
+        <td class="pu">2462</td>
+    </tr><tr>
+        <td>2026-06-20 10:11</td>
+        <td class="nick">캡띵2</td>
+        <td>Lv.266 (42.798%)</td>
+        <td class="hl">2282.3만</td>
+        <td class="or">26293</td>
+        <td class="pu">18187</td>
+    </tr><tr>
+        <td>2026-06-20 10:11</td>
+        <td class="nick">죄보의속삭임</td>
+        <td>Lv.266 (17.102%)</td>
+        <td class="hl">2277.7만</td>
+        <td class="or">26045</td>
+        <td class="pu">16090</td>
+    </tr><tr>
+        <td>2026-06-20 10:11</td>
+        <td class="nick">보마공준</td>
+        <td>Lv.270 (44.793%)</td>
+        <td class="hl">2356.2만</td>
+        <td class="or">26465</td>
+        <td class="pu">17774</td>
+    </tr><tr>
         <td>2026-06-20 10:04</td>
         <td class="nick">아잉담스매셔</td>
         <td>Lv.262 (14.308%)</td>
@@ -161,7 +189,7 @@ function showTab(date){
   document.getElementById("tab-"+date).style.display="block";
   document.getElementById("btn-"+date).classList.add("active");
 }
-const chartData = {"보마공준": {"labels": ["06/20 10:04"], "combat_power": [23562106], "stat_equiv_380": [26465], "hexa_equiv_380": [17774], "level": [270]}, "아잉담스매셔": {"labels": ["06/20 10:04"], "combat_power": [5783818], "stat_equiv_380": [6026], "hexa_equiv_380": [2462], "level": [262]}, "죄보의속삭임": {"labels": ["06/20 10:04"], "combat_power": [22776539], "stat_equiv_380": [26045], "hexa_equiv_380": [16090], "level": [266]}, "캡띵2": {"labels": ["06/20 10:04"], "combat_power": [22822925], "stat_equiv_380": [26293], "hexa_equiv_380": [18187], "level": [266]}};
+const chartData = {"보마공준": {"labels": ["06/20 10:04", "06/20 10:11"], "combat_power": [23562106, 23562106], "stat_equiv_380": [26465, 26465], "hexa_equiv_380": [17774, 17774], "level": [270, 270]}, "아잉담스매셔": {"labels": ["06/20 10:04", "06/20 10:11"], "combat_power": [5783818, 5783818], "stat_equiv_380": [6026, 6026], "hexa_equiv_380": [2462, 2462], "level": [262, 262]}, "죄보의속삭임": {"labels": ["06/20 10:04", "06/20 10:11"], "combat_power": [22776539, 22776539], "stat_equiv_380": [26045, 26045], "hexa_equiv_380": [16090, 16090], "level": [266, 266]}, "캡띵2": {"labels": ["06/20 10:04", "06/20 10:11"], "combat_power": [22822925, 22822925], "stat_equiv_380": [26293, 26293], "hexa_equiv_380": [18187, 18187], "level": [266, 266]}};
 const allNicks = ["보마공준", "아잉담스매셔", "죄보의속삭임", "캡띵2"];
 const colors = ["#ff6b2b", "#4a9eff", "#2ecc71", "#a78bfa", "#ffb347", "#e74c3c"];
 
