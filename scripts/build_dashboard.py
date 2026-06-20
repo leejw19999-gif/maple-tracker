@@ -180,8 +180,8 @@ allNicks.forEach((nick, i) => {
             data: {
                 labels: d.labels,
                 datasets: [{
-                    label: '레벨',
-                    data: d.level,
+                    label: '경험치%',
+                    data: d.exp_pct,
                     borderColor: colors[i % colors.length],
                     backgroundColor: colors[i % colors.length] + '22',
                     tension: 0.3, fill: true, pointRadius: 4,
@@ -196,15 +196,15 @@ allNicks.forEach((nick, i) => {
                     tooltip: {
                         callbacks: {
                             label: (ctx) => {
-                                const exp = d.exp_pct[ctx.dataIndex];
-                                return `레벨: ${ctx.raw} (${exp}%)`;
+                                const lv = d.level[ctx.dataIndex];
+                                return `Lv.${lv} (${ctx.raw}%)`;
                             }
                         }
                     }
                 },
                 scales: {
                     x: { ticks: { color: '#8892a4', maxTicksLimit: 10 }, grid: { color: '#252a3a' } },
-                    y: { ticks: { color: '#2ecc71' }, grid: { color: '#252a3a' } }
+                    y: { ticks: { color: '#2ecc71' }, grid: { color: '#252a3a' }, title: { display: true, text: '경험치%', color: '#2ecc71' } }
                 }
             }
         });
