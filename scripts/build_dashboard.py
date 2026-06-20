@@ -215,6 +215,8 @@ allNicks.forEach((nick, i) => {
                         grid: { color: '#252a3a' }
                     },
                     y: {
+                        min: 0,
+                        max: 100,
                         ticks: { color: '#2ecc71', callback: (v) => v + '%' },
                         grid: { color: '#252a3a' },
                         title: { display: true, text: '경험치%', color: '#2ecc71' }
