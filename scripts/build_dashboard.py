@@ -9,7 +9,6 @@ KST = timezone(timedelta(hours=9))
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# DB에서 전체 데이터 조회
 res = supabase.table('maple_records') \
     .select('*') \
     .order('collected_at', desc=False) \
@@ -24,7 +23,6 @@ def fmt_num(n):
     if n >= 10000:     return f'{n/10000:.1f}만'
     return f'{n:,}'
 
-# 날짜별 그룹화
 by_date = defaultdict(dict)
 for r in rows:
     dt = datetime.fromisoformat(r['collected_at'])
@@ -34,27 +32,25 @@ for r in rows:
 dates = sorted(by_date.keys(), reverse=True)
 all_nicks = sorted(set(r['nick'] for r in rows))
 
-# 차트 데이터 (닉별 시계열)
+# 차트 데이터
 chart_data = {}
 for nick in all_nicks:
     chart_data[nick] = {
         'labels': [],
-        'combat_power': [],
-        'stat_equiv_380': [],
         'hexa_equiv_380': [],
         'level': [],
+        'exp_pct': [],
     }
 for r in rows:
     dt = datetime.fromisoformat(r['collected_at']).astimezone(KST)
     label = dt.strftime('%m/%d %H:%M')
     nick = r['nick']
     chart_data[nick]['labels'].append(label)
-    chart_data[nick]['combat_power'].append(r.get('combat_power'))
-    chart_data[nick]['stat_equiv_380'].append(r.get('stat_equiv_380'))
     chart_data[nick]['hexa_equiv_380'].append(r.get('hexa_equiv_380'))
     chart_data[nick]['level'].append(r.get('level'))
+    chart_data[nick]['exp_pct'].append(r.get('exp_pct'))
 
-# 날짜 탭 HTML
+# 날짜 탭
 tab_btns = ''
 tab_contents = ''
 for di, date in enumerate(dates):
@@ -93,7 +89,7 @@ for di, date in enumerate(dates):
         cards += f'''<div class="card">
             <div class="card-title">🍁 {nick}</div>
             <div class="stat-row"><span class="lbl">레벨</span>
-                <span class="val"">Lv.{d.get("level") or "-"} {lv_delta}</span>
+                <span class="val">Lv.{d.get("level") or "-"} {lv_delta}</span>
                 <span class="exp">({d.get("exp_pct") or "-"}%)</span></div>
             <div class="stat-row"><span class="lbl">전투력</span>
                 <span class="val hl">{fmt_num(d.get("combat_power"))}</span>
@@ -123,7 +119,7 @@ for r in reversed(rows):
         <td class="pu">{r.get("hexa_equiv_380") or "-"}</td>
     </tr>'''
 
-# 차트 canvas HTML
+# 차트
 charts_html = ''
 colors = ['#ff6b2b','#4a9eff','#2ecc71','#a78bfa','#ffb347','#e74c3c']
 for i, nick in enumerate(all_nicks):
@@ -143,29 +139,34 @@ allNicks.forEach((nick, i) => {
         data: {
             labels: d.labels,
             datasets: [{
-                label: '환산(380)',
-                data: d.stat_equiv_380,
+                label: '헥사환산(380)',
+                data: d.hexa_equiv_380,
                 borderColor: colors[i % colors.length],
                 backgroundColor: colors[i % colors.length] + '22',
                 tension: 0.3, fill: true, pointRadius: 4,
+                yAxisID: 'y',
             }, {
                 label: '레벨(경험치%)',
                 data: d.level,
                 borderColor: '#2ecc71',
                 backgroundColor: '#2ecc7122',
                 tension: 0.3, fill: false, pointRadius: 4,
-                borderDash: [4,4],
+                borderDash: [5, 5],
                 yAxisID: 'y2',
             }]
         },
         options: {
             responsive: true,
+            interaction: { mode: 'index', intersect: false },
             plugins: {
                 legend: { labels: { color: '#8892a4' } },
                 tooltip: {
                     callbacks: {
                         label: (ctx) => {
-                            if (ctx.dataset.label.includes('레벨')) return `레벨: ${ctx.raw} (${d.exp_pct[ctx.dataIndex]}%)`;
+                            if (ctx.dataset.label.includes('레벨')) {
+                                const exp = d.exp_pct[ctx.dataIndex];
+                                return `레벨: ${ctx.raw} (${exp}%)`;
+                            }
                             return `${ctx.dataset.label}: ${ctx.raw?.toLocaleString()}`;
                         }
                     }
@@ -173,8 +174,17 @@ allNicks.forEach((nick, i) => {
             },
             scales: {
                 x: { ticks: { color: '#8892a4', maxTicksLimit: 10 }, grid: { color: '#252a3a' } },
-                y: { ticks: { color: '#8892a4' }, grid: { color: '#252a3a' }, title: { display: true, text: '헥사환산(380)', color: '#8892a4' } },
-                y2: { position: 'right', ticks: { color: '#2ecc71' }, grid: { drawOnChartArea: false }, title: { display: true, text: '레벨', color: '#2ecc71' } }
+                y: {
+                    ticks: { color: '#8892a4' },
+                    grid: { color: '#252a3a' },
+                    title: { display: true, text: '헥사환산(380)', color: '#8892a4' }
+                },
+                y2: {
+                    position: 'right',
+                    ticks: { color: '#2ecc71' },
+                    grid: { drawOnChartArea: false },
+                    title: { display: true, text: '레벨', color: '#2ecc71' }
+                }
             }
         }
     });
@@ -239,10 +249,8 @@ html = f'''<!DOCTYPE html>
   <div class="section-title">📅 날짜별 현황</div>
   <div class="tab-bar">{tab_btns}</div>
   {tab_contents}
-
   <div class="section-title">📈 성장 그래프</div>
   <div class="charts-grid">{charts_html}</div>
-
   <div class="section-title">📋 전체 기록</div>
   <div class="table-wrap">
   <table>
