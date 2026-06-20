@@ -40,23 +40,34 @@ def parse_body(body, nick):
         'hexa_equiv_380': int(he380.group(1).replace(',','')) if he380 else None,
     }
 
-async def scrape(context, nick):
-    page = await context.new_page()
-    try:
-        await page.goto(
-            f'https://maplescouter.com/info?name={nick}',
-            wait_until='domcontentloaded', timeout=60000
-        )
-        for _ in range(20):
-            await page.wait_for_timeout(1000)
+async def scrape(context, nick, max_retry=3):
+    for attempt in range(max_retry):
+        page = await context.new_page()
+        try:
+            await page.goto(
+                f'https://maplescouter.com/info?name={nick}',
+                wait_until='domcontentloaded', timeout=60000
+            )
+            for _ in range(20):
+                await page.wait_for_timeout(1000)
+                body = await page.inner_text('body')
+                if 'Lv.' in body and len(body) > 1000:
+                    return parse_body(body, nick)
+
             body = await page.inner_text('body')
-            if 'Lv.' in body and len(body) > 1000:
+            if 'Lv.' in body:
                 return parse_body(body, nick)
-        # 타임아웃 - 그대로 파싱 시도
-        body = await page.inner_text('body')
-        return parse_body(body, nick)
-    finally:
-        await page.close()
+
+            # 데이터 없으면 재시도
+            print(f'    ⚠️ {nick} 렌더링 실패 ({attempt+1}/{max_retry}), 재시도...')
+        except Exception as e:
+            print(f'    ⚠️ {nick} 오류 ({attempt+1}/{max_retry}): {e}')
+        finally:
+            await page.close()
+
+        await asyncio.sleep(5)  # 재시도 전 5초 대기
+
+    raise Exception(f'{max_retry}회 재시도 모두 실패')
 
 def save_to_db(entry, collected_at):
     row = {
