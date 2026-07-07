@@ -9,10 +9,20 @@ KST = timezone(timedelta(hours=9))
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-res = supabase.table('maple_records') \
-    .select('*') \
-    .order('collected_at', desc=False) \
-    .execute()
+all_rows = []
+offset = 0
+while True:
+    res = supabase.table('maple_records') \
+        .select('*') \
+        .order('collected_at', desc=False) \
+        .range(offset, offset + 999) \
+        .execute()
+    all_rows.extend(res.data)
+    if len(res.data) < 1000:
+        break
+    offset += 1000
+
+rows = all_rows
 
 rows = res.data
 
